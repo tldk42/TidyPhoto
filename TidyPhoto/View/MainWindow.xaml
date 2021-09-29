@@ -1,0 +1,466 @@
+﻿<Window x:Class="TidyPhoto.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:local="clr-namespace:TidyPhoto.View"
+        xmlns:vm="clr-namespace:TidyPhoto.ViewModel"
+        xmlns:model="clr-namespace:TidyPhoto.Model"
+        xmlns:converter="clr-namespace:TidyPhoto.ViewModel.Converter"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:m="clr-namespace:System.Windows.Media;assembly=PresentationCore"
+        mc:Ignorable="d"
+        Title="TidyPhoto" Height="450" Width="800"
+        MinHeight="450" MinWidth="800">
+
+    <Window.Resources>
+        <vm:ClassifyFolder x:Key="ClassifyFolder"/>
+        <vm:NameChange x:Key="NameChange"/>
+        <vm:TextInput x:Key="TextInput"/>
+        <model:FolderInformation x:Key="FolderInfo"/>
+        <model:ProgressInformation x:Key="ProgressInfo"/>
+        <model:ClsfFolderInformation x:Key="ClsfFolderInfo"/>
+        <model:NameChangeInformation x:Key="NameChangeInfo"/>
+        <model:TextInputInfomation x:Key="TextInputInfo"/>
+        <converter:FontNameToKoreanConverter x:Key="FontNameToKorConverter"/>
+        <ObjectDataProvider x:Key="fontFamiliesKey" ObjectType="{x:Type m:Fonts}" MethodName="get_SystemFontFamilies"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="7*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 작업 폴더 Dock -->
+        <DockPanel DataContext="{StaticResource FolderInfo}">
+            <TextBlock Width="Auto" Margin="5"
+                       VerticalAlignment="Center"
+                       Text=" 작업 폴더 : "
+                       FontWeight="Bold"/>
+            <Button Height="25" Margin="5"
+                    FontSize="12"
+                    VerticalAlignment="Center"
+                    Content=" 선택 "
+                    DockPanel.Dock="Right"
+                    Command="{Binding WorkFolderCommand}"/>
+            <TextBox Width="Auto" Height="25" Margin="5" 
+                     VerticalAlignment="Center"
+                     IsReadOnly="True"
+                     Text="{Binding WorkFolder}"/>
+        </DockPanel>
+
+        <TabControl TabStripPlacement="Left"
+                    Grid.Row="2"
+                    mah:HeaderedControlHelper.HeaderFontSize="20"
+                    mah:HeaderedControlHelper.HeaderFontWeight="Bold">
+            <!-- 폴더 분류 Tab -->
+            <TabItem Header="&#10;&#10; 폴더 분류 &#10;"
+                     DataContext="{StaticResource ClassifyFolder}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <!-- 대상 폴더 Dock -->
+                    <StackPanel DataContext="{StaticResource FolderInfo}">
+                        <DockPanel Margin="0, 5, 0, 0"
+                                   Grid.Row="0">
+                            <TextBlock Width="Auto" Margin="5"
+                                       VerticalAlignment="Center"
+                                       Text=" 대상 폴더 : "
+                                       FontWeight="Bold"/>
+                            <Button Height="25" Margin="5"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Content=" 선택 "
+                                    DockPanel.Dock="Right"
+                                    Command="{Binding DestFolderCommand}"/>
+                            <TextBox Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"
+                                     IsReadOnly="True"
+                                     Text="{Binding DestFolder}"/>
+                        </DockPanel>
+                        <CheckBox Grid.Row="0" Margin="85, 5, 0, 0"
+                                  VerticalAlignment="Center"
+                                  Content="작업 폴더 경로와 동일"
+                                  IsChecked="{Binding IsFolderEqual}"/>
+                    </StackPanel>
+                    <!-- 폴더 분류 기준 선택 Grid-->
+                    <WrapPanel Grid.Row="1"
+                               Margin="30"
+                               HorizontalAlignment="Center"
+                               DataContext="{StaticResource ClsfFolderInfo}">
+                        <RadioButton Content="연도별 폴더 생성" 
+                                     GroupName="classifyFolder"
+                                     IsChecked="{Binding YearOpt}"
+                                     Margin="30"/>
+                        <RadioButton x:Name="monthRadioBtn_Clsf"
+                                     Content="연,월별 폴더 생성" 
+                                     GroupName="classifyFolder"
+                                     IsChecked="{Binding MonthOpt}"
+                                     Margin="30"/>
+                        <RadioButton x:Name="dayRadioBtn_Clsf"
+                                     Content="연,월,일별 폴더 생성" 
+                                     GroupName="classifyFolder"
+                                     IsChecked="{Binding DayOpt}"
+                                     Margin="30"/>
+                        <RadioButton x:Name="cameraRadioBtn_Clsf"
+                                     Content="기기별 폴더 생성" 
+                                     GroupName="classifyFolder"
+                                     IsChecked="{Binding CameraOpt}"
+                                     Margin="30"/>
+                        <RadioButton x:Name="locateRadioBtn_Clsf"
+                                     Content="위치별 폴더 생성" 
+                                     GroupName="classifyFolder"
+                                     IsChecked="{Binding LocateOpt}"
+                                     Margin="30"/>
+                    </WrapPanel>
+                    <!-- 작업 실행 Dock -->
+                    <DockPanel Margin="0, 5, 0, 0" Grid.Row="2">
+                        <TextBlock Width="70" Margin="5"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding Source={StaticResource ProgressInfo},
+                                                          Path=StateText}"
+                                   TextAlignment="Center"
+                                   FontWeight="Bold"/>
+                        <Button FontSize="12"
+                                Height="25" Margin="5"
+                                VerticalAlignment="Center"
+                                Content=" 적용 "
+                                DockPanel.Dock="Right"
+                                Command="{Binding CFCommand}"/>
+                        <ProgressBar Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"                     
+                                     Maximum="100" Minimum="0"
+                                     Value="{Binding Source={StaticResource ProgressInfo},
+                                                     Path=ProgressNum}"/>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- 이름 변경 Tab -->
+            <TabItem Header="&#10; 이름 변경 &#10;"
+                     DataContext="{StaticResource NameChangeInfo}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="72"/>
+                        <RowDefinition Height="217*"/>
+                        <RowDefinition Height="72*"/>
+                    </Grid.RowDefinitions>
+                    <!-- 대상 폴더 Dock -->
+                    <StackPanel DataContext="{StaticResource FolderInfo}"
+                                Grid.Row="0">
+                        <DockPanel Margin="0, 5, 0, 0"
+                                   Grid.Row="0">
+                            <TextBlock Width="Auto" Margin="5"
+                                       VerticalAlignment="Center"
+                                       Text=" 대상 폴더 : "
+                                       FontWeight="Bold"/>
+                            <Button Command="{Binding DestFolderCommand}"
+                                    Height="25" Margin="5"
+                                    FontSize="12"
+                                    VerticalAlignment="Center"
+                                    Content=" 선택 "
+                                    DockPanel.Dock="Right"/>
+                            <TextBox Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"
+                                     IsReadOnly="True"
+                                     Text="{Binding DestFolder}"/>
+                        </DockPanel>
+                        <CheckBox IsChecked="{Binding IsFolderEqual}"
+                                  Grid.Row="0" Margin="85, 5, 0, 0"
+                                  VerticalAlignment="Center"
+                                  Content="작업 폴더 경로와 동일"/>
+                    </StackPanel>
+                    <!-- 이름 변경 기준 선택 Grid-->
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="2*"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <ComboBox Height="25" Width="120" Margin="20, 30"
+                                      VerticalAlignment="Top"
+                                      SelectedItem="{Binding SelectedOpt1}"
+                                      ItemsSource="{Binding Opt1List}"/>
+                            <ComboBox Height="25" Width="120" Margin="20,30" 
+                                      VerticalAlignment="Top"
+                                      SelectedItem="{Binding SelectedOpt2}"
+                                      ItemsSource="{Binding Opt2List}"/>
+                            <ComboBox Height="25" Width="120" Margin="20, 30"
+                                      VerticalAlignment="Top"
+                                      SelectedItem="{Binding SelectedOpt3}"
+                                      ItemsSource="{Binding Opt3List}"/>
+                            <ComboBox Height="25" Width="120" Margin="20,30"
+                                      VerticalAlignment="Top"
+                                      SelectedItem="{Binding SelectedOpt4}"
+                                      ItemsSource="{Binding Opt4List}"/>
+                        </StackPanel>
+                        <!--직접 입력 ComboBox 선택 시 TextBox Visible-->
+                        <StackPanel Grid.Row="1" 
+                                    Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBox Height="25" Width="120" Margin="20"
+                                     Text="{Binding UserText1}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                        <Setter Property="MaxLength" Value="20"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedOpt1}" Value="직접 입력">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <TextBox Height="25" Width="120" Margin="20"
+                                     Text="{Binding UserText2}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                        <Setter Property="MaxLength" Value="20"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedOpt2}" Value="직접 입력">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <TextBox Height="25" Width="120" Margin="20"
+                                     Text="{Binding UserText3}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                        <Setter Property="MaxLength" Value="20"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedOpt3}" Value="직접 입력">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <TextBox Height="25" Width="120" Margin="20"
+                                     Text="{Binding UserText4}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                        <Setter Property="MaxLength" Value="20"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedOpt4}" Value="직접 입력">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </StackPanel>
+                    </Grid>
+                    <!-- 작업 실행 Dock -->
+                    <DockPanel Margin="0, 5, 0, 0" Grid.Row="2">
+                        <TextBlock Width="70" Margin="5"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   FontWeight="Bold"
+                                   Text="{Binding Source={StaticResource ProgressInfo},
+                                                          Path=StateText}"/>
+                        <Button Height="25" Margin="5"
+                                FontSize="12"
+                                VerticalAlignment="Center"
+                                Content=" 적용 "
+                                DockPanel.Dock="Right"
+                                Command="{Binding Source={StaticResource NameChange},
+                                                  Path=NCCommand}"/>
+                        <ProgressBar Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"
+                                     Maximum="100" Minimum="0"
+                                     Value="{Binding Source={StaticResource ProgressInfo},
+                                                     Path=ProgressNum}"/>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- 문구 삽입 Tab -->
+            <TabItem Header="&#10; 문구 삽입 &#10;&#10;"
+                      DataContext="{StaticResource TextInputInfo}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <!-- 대상 폴더 Dock -->
+                    <StackPanel DataContext="{StaticResource FolderInfo}">
+                        <DockPanel Margin="0, 5, 0, 0"
+                                   Grid.Row="0">
+                            <TextBlock Width="Auto" Margin="5"
+                                       VerticalAlignment="Center"
+                                       Text=" 대상 폴더 : "
+                                       FontWeight="Bold"/>
+                            <Button Height="25" Margin="5"
+                                    FontSize="12"
+                                     VerticalAlignment="Center"
+                                     Content=" 선택 "
+                                     DockPanel.Dock="Right"
+                                     Command="{Binding DestFolderCommand}"/>
+                            <TextBox Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"
+                                     IsReadOnly="True"
+                                     Text="{Binding DestFolder}"/>
+                        </DockPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox
+                              Grid.Row="0" Margin="85, 5, 0, 0"
+                              VerticalAlignment="Center"
+                              Content="작업 폴더 경로와 동일"
+                              IsChecked="{Binding IsFolderEqual}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="0.5*"/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <!-- 문구 삽입 기준 선택 Grid-->
+                        <Grid Margin="10, 10, 10, 0" 
+                              HorizontalAlignment="Center">
+                            <WrapPanel>
+                                <RadioButton Content="날짜"
+                                             Margin="30, 20, 30, 10"
+                                             IsChecked="{Binding DateOpt}"/>
+                                <RadioButton Content="장치"
+                                             Margin="30, 20, 30, 10"
+                                             IsChecked="{Binding CameraOpt}"/>
+                                <RadioButton Content="위치"
+                                             Margin="30, 20, 30, 10"
+                                             IsChecked="{Binding LocateOpt}"/>
+                                <RadioButton Content="사용자 지정 텍스트"
+                                             Margin="30, 20, 30, 10"
+                                             IsChecked="{Binding UserTextOpt}"/>
+                            </WrapPanel>
+                        </Grid>
+                        <!-- 문구 글꼴 선택 Grid-->
+                        <Grid Grid.Row="2" Margin="10, 10, 10, 0"  
+                              HorizontalAlignment="Center">
+                            <WrapPanel>
+                                <TextBlock Text="글꼴 :" 
+                                           Margin="10, 15, 5, 5"/>
+                                <ComboBox Height="25" Width="160"
+                                          Margin="5, 10, 10, 10"
+                                          ItemsSource="{Binding Source={StaticResource fontFamiliesKey},
+                                                        Converter={StaticResource FontNameToKorConverter}}"
+                                          SelectedItem="{Binding FontData.SelectedFont}"
+                                          MaxDropDownHeight="150"
+                                          ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                                <TextBlock Text="스타일 :" 
+                                           Margin="5, 15, 5, 5"/>
+                                <ComboBox Height="25" Width="110"
+                                          Margin="5, 10, 10, 10"
+                                          ItemsSource="{Binding FontData.FontStyleList}"
+                                          SelectedItem="{Binding FontData.SelectedFontStyle}"/>
+                                <TextBlock Text="크기 :" 
+                                           Margin="5, 15, 5, 5"/>
+                                <ComboBox Height="25" Width="45"
+                                          Margin="5, 10, 10, 10"
+                                          ItemsSource="{Binding FontData.FontSizeList}"
+                                          SelectedItem="{Binding FontData.SelectedFontSize}"
+                                          MaxDropDownHeight="150"
+                                          ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+
+                                <TextBlock Text="색상 :" 
+                                           Margin="5, 15, 10, 0"/>
+                                <xctk:ColorPicker VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  Width="45" Height="30"
+                                                  x:Name="FontColor"
+                                                  Margin="5, 10, 20, 10"
+                                                  SelectedColor="{Binding FontData.SelectedFontcolor}"/>
+                            </WrapPanel>
+                        </Grid>
+                        <DockPanel Grid.Row="1">
+                            <TextBox Text="{Binding UserText}">
+                                <!--사용자 지정 텍스트 RadioButton 선택 시 TextBox Visible-->
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="Width" Value="400"/>
+                                        <Setter Property="Height" Value="20"/>
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Margin" Value="10, 0, 10, 0"/>
+                                        <Setter Property="MaxLength" Value="20"/>
+                                        <Setter Property="Visibility" Value="Hidden"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding UserTextOpt}" Value="true">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </DockPanel>
+                        <!-- 문구 삽입 위치 선택 Grid-->
+                        <Grid Grid.Row="3" Margin="0,15,0,0">
+                            <RadioButton Content="Top - Left"
+                                         Margin="70,5,0,0" 
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Top"
+                                         IsChecked="{Binding Alignment1}"/>
+                            <RadioButton Content="Top - Right"
+                                         Margin="0,5,70,0" 
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Top"
+                                         IsChecked="{Binding Alignment2}"/>
+                            <RadioButton Content="Top - Center"
+                                         Margin="0,5,0,0"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Top"
+                                         IsChecked="{Binding Alignment5}"/>
+                            <RadioButton Content="Bottom - Center"
+                                         Margin="0,0,0,0"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Bottom"
+                                         IsChecked="{Binding Alignment6}"/>
+                            <RadioButton Content="Bottom - Left"
+                                         Margin="70,0,0,0" 
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Bottom"
+                                         IsChecked="{Binding Alignment3}"/>
+                            <RadioButton Content="Bottom - Right"
+                                         Margin="0,0,70,0" 
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Bottom"
+                                         IsChecked="{Binding Alignment4}"/>
+                        </Grid>
+                    </Grid>
+                    <!-- 작업 실행 Dock -->
+                    <DockPanel Margin="0, 5, 0, 0"
+                                   Grid.Row="2">
+                        <TextBlock Width="70" Margin="5"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   FontWeight="Bold"
+                                   Text="{Binding Source={StaticResource ProgressInfo},
+                                                          Path=StateText}"/>
+                        <Button FontSize="12"
+                                Height="25" Margin="5"
+                                VerticalAlignment="Center"
+                                Content=" 적용 "
+                                DockPanel.Dock="Right"
+                                Command="{Binding Source={StaticResource TextInput},
+                                                  Path=TXTCommand}"/>
+                        <ProgressBar Width="Auto" Height="25" Margin="5" 
+                                     VerticalAlignment="Center"
+                                     Maximum="100" Minimum="0"
+                                     Value="{Binding Source={StaticResource ProgressInfo},
+                                                     Path=ProgressNum}"/>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
